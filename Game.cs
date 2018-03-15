@@ -5,9 +5,9 @@ namespace mines
 	{
 		int turn;
 		Board board;
-		const int Width = 5; //TODO options for the game
-		const int Height = 5;
-		const int NMines = 6;
+		const int Width = 6; //TODO options for the game
+		const int Height = 6;
+		const int NMines = 3;
 
 		bool running = true;
 
@@ -24,11 +24,19 @@ namespace mines
 		}
 
 		public string GetState() {
-			string state = string.Format("Turn {0}. {1} out of {2} flags placed.\n", turn, board.GetFlagsPlaced(), NMines);
-			return state + board.GetGrid();
+			string state = string.Format("Turn {0}. {1} out of {2} flags placed.\n", turn, board.CountFlags(), NMines);
+			state += board.GetGrid();
+
+			if (!running) {
+				if (board.hitMine) state += "\nYOU LOSE\n";
+				else if (board.AllSeen()) state += "\nYOU WIN!\n";
+				else state += "It's over somehow!\n";
+			}
+
+			return state;
 		}
 
-		internal void Parse(string line)
+		public void Parse(string line)
 		{
 			if (string.IsNullOrEmpty(line)) return; //TODO show help
 
@@ -60,11 +68,17 @@ namespace mines
 			var command = verb[0];
 
 			if (words.Length == 1) command = 'p';
+			if (command == 'p' && board.SeenAt(col, row) >= 0) command = 'x';
 
 			switch(command) {
-				case 'p': board.PeekAt(col, row); break;
+				case 'p': board.PeekAt(col, row); turn++; break;
+				case 'x': board.ExpandPeekFrom(col, row); turn++; break;
 				case 'f': board.SetFlagAt(col, row, !board.HasFlagAt(col, row)); break;
 				default: return;
+			}
+
+			if (board.hitMine || board.AllSeen()) {
+				running = false;
 			}
 		}
 	}

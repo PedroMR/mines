@@ -12,6 +12,7 @@ namespace mines
 		bool[] mines;
 		bool[] flags;
 		int[] seen;
+		public bool hitMine = false;
 
 		public Board(int width, int height, int nMines)
 		{
@@ -27,9 +28,9 @@ namespace mines
 			SpreadMines(nMines);
 		}
 
-		public int GetFlagsPlaced()
+		public int CountFlags()
 		{
-			return flags.Count(x => x);
+			return flags.Count();
 		}
 
 		private void SpreadMines(int nMines)
@@ -68,13 +69,13 @@ namespace mines
 
 		public bool HasMineAt(int col, int row)
 		{
-			if (col < 0 || col >= width) return false;
-			if (row < 0 || row >= height) return false;
+			if (col < 0 || col >= width || row < 0 || row >= height) return false;
 			return mines[PosIndexFor(col, row)];
 		}
 
 		public bool HasFlagAt(int col, int row)
 		{
+			if (col < 0 || col >= width || row < 0 || row >= height) return false;
 			return flags[PosIndexFor(col, row)];
 		}
 
@@ -88,22 +89,87 @@ namespace mines
 			return seen[PosIndexFor(col, row)];
 		}
 
+		public bool AllSeen()
+		{
+			if (CountFlags() != CountMines())
+				return false;
+			
+			for (int row = 0; row < height; row++)
+			{
+				for (int col = 0; col < width; col++)
+				{
+					if (SeenAt(col, row) < 0 && !HasFlagAt(col, row)) return false;
+				}
+			}
+
+			return true;
+		}
+
+		private int CountMines()
+		{
+			return mines.Count();
+		}
+
 		public void PeekAt(int col, int row)
 		{
-			if (SeenAt(col, row) >= 0) {
+			if (col < 0 || col >= width || row < 0 || row >= height) return;
+
+			if (SeenAt(col, row) >= 0)
+			{
 				return;
 			}
 
 			int signal = CalcSignalFor(col, row);
 			seen[PosIndexFor(col, row)] = signal;
+
+			if (HasMineAt(col, row))
+			{
+				hitMine = true;
+			}
+			else if (signal == 0)
+			{
+				ExpandPeekFrom(col, row);
+			}
+		}
+
+		public void ExpandPeekFrom(int col, int row)
+		{
+			//TODO account for positive numbers and flags around (middle-click)
+			int flagsAround = 0;
+			for (int i = -1; i <= 1; i++)
+			{
+				for (int j = -1; j <= 1; j++)
+				{
+					if (i == j && i == 0) continue;
+					if (HasFlagAt(col + j, row + i)) flagsAround++;
+				}
+			}
+
+			if (flagsAround != SeenAt(col, row)) return;
+
+			for (int i = -1; i <= 1; i++)
+			{
+				for (int j = -1; j <= 1; j++)
+				{
+					if (i == j && i == 0) continue;
+					if (HasFlagAt(col + j, row + i)) continue;
+
+					PeekAt(col + j, row + i);
+
+				}
+			}
 		}
 
 		private int CalcSignalFor(int col, int row)
 		{
 			int sum = 0;
 
-			for (int i = -1; i <= 1; i++) {
-				for (int j = -1; j <= 1; j++) {
+			for (int i = -1; i <= 1; i++)
+			{
+				for (int j = -1; j <= 1; j++)
+				{
+					if (i == j && i == 0) continue;
+
 					if (HasMineAt(col + j, row + i))
 						sum++;
 				}
@@ -116,7 +182,7 @@ namespace mines
 		{
 			StringBuilder res = new StringBuilder();
 
-			int padLeftCount = (int)Math.Ceiling(Math.Log10(height+1));
+			int padLeftCount = (int)Math.Ceiling(Math.Log10(height + 1));
 			string padLeft = "".PadLeft(padLeftCount);
 
 			res.Append(padLeft + " ");
@@ -130,7 +196,7 @@ namespace mines
 			res.AppendLine(topWall);
 			for (int row = 0; row < height; row++)
 			{
-				res.Append(String.Format("{0,"+padLeftCount+"}|", row+1));
+				res.Append(String.Format("{0," + padLeftCount + "}|", row + 1));
 				for (int col = 0; col < width; col++)
 				{
 					res.Append(GetCharacterForPos(row, col));
@@ -153,7 +219,8 @@ namespace mines
 				int nearby = SeenAt(col, row);
 				if (nearby == -1)
 				{
-					return ".";
+					if (hitMine && HasMineAt(col, row)) return "x";
+					else return ".";
 				}
 				else
 				{

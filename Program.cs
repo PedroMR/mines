@@ -8,25 +8,29 @@ namespace mines
 	{
 		public static void Main(string[] args)
 		{
-			Console.WriteLine("Console Minesweeper");
 
 			var input = Console.OpenStandardInput();
 			var reader = new StreamReader(input);
 
-			Game game = new Game();
-			while(game.IsRunning()) {
+			while (true)
+			{
+				Console.WriteLine("Console Minesweeper");
+				Console.WriteLine("===================\n");
+				Game game = new Game();
+				while (game.IsRunning())
+				{
+					Console.WriteLine(game.GetState());
+					Console.WriteLine("A3 to peek at grid position A3");
+					Console.WriteLine("f A3 to flag grid position A3");
+
+					var line = reader.ReadLine();
+					game.Parse(line);
+
+				}
+
 				Console.WriteLine(game.GetState());
-				Console.WriteLine("A3 to peek at grid position A3");
-				Console.WriteLine("f A3 to flag grid position A3");
-
-				var line = reader.ReadLine();
-				game.Parse(line);
-
+				Console.WriteLine("\nGAME OVER\n");
 			}
-
-			var logger = NLog.LogManager.GetCurrentClassLogger();
-			logger.Error("EEEE Hello World");
-			NLog.LogManager.Shutdown();
 		}
 	}
 }
