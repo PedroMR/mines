@@ -24,7 +24,7 @@ namespace mines
 		}
 
 		public string GetState() {
-			string state = string.Format("Turn {0}. {1} out of {2} flags placed.\n", turn, board.CountFlags(), NMines);
+			string state = string.Format("Turn {0}. {1} out of {2} flags placed.\n\n", turn, board.CountFlags(), NMines);
 			state += board.GetGrid();
 
 			if (!running) {

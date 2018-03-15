@@ -30,7 +30,7 @@ namespace mines
 
 		public int CountFlags()
 		{
-			return flags.Count();
+			return flags.Count(x => x);
 		}
 
 		private void SpreadMines(int nMines)
@@ -107,7 +107,7 @@ namespace mines
 
 		private int CountMines()
 		{
-			return mines.Count();
+			return mines.Count(x => x);
 		}
 
 		public void PeekAt(int col, int row)

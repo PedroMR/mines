@@ -20,9 +20,10 @@ namespace mines
 				while (game.IsRunning())
 				{
 					Console.WriteLine(game.GetState());
-					Console.WriteLine("A3 to peek at grid position A3");
+					Console.WriteLine("A3 to peek (or expand) at grid position A3");
 					Console.WriteLine("f A3 to flag grid position A3");
 
+					Console.Write("> ");
 					var line = reader.ReadLine();
 					game.Parse(line);
 
